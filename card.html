@@ -18,7 +18,16 @@
     .btn{display:inline-flex;align-items:center;gap:.55rem;padding:.85rem 1.1rem;border-radius:14px;font-weight:700;background:linear-gradient(180deg,#e6cf92,#c9a86a);color:#1a1200;box-shadow:0 8px 20px rgba(201,168,106,.35);} .btn.ghost{background:transparent;color:var(--brand);border:1px solid rgba(201,168,106,.25)}
     .grid{display:grid;grid-template-columns: 1fr 1.1fr;gap:1.25rem;padding:2rem 0}
     .panel{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .art{height:420px;border-radius:var(--radius);overflow:hidden}
+    .art {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      background: #0f1421;
+      overflow: hidden;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     .art img{width:100%;height:100%;object-fit:cover;display:block}
     .info{padding:1.2rem}
     .title{font-family:Cinzel,serif;font-size:clamp(1.6rem,3vw,2.2rem);margin:.2rem 0 .6rem}
@@ -81,6 +90,12 @@
       document.getElementById('atk').textContent = c.attack;
       document.getElementById('hp').textContent = c.health;
       document.getElementById('price').textContent = Number(c.price).toFixed(2);
+            // Hide Attack & Health for Spell cards
+      if ((c.card_type || '').toLowerCase() === 'spell') {
+        document.getElementById('atk').closest('.stat').style.display = 'none';
+        document.getElementById('hp').closest('.stat').style.display = 'none';
+      }
+
       document.getElementById('qty').textContent = c.quantity;
       document.getElementById('desc').textContent = c.text;
 

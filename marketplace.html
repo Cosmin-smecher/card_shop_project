@@ -60,8 +60,22 @@
     /* Grid */
     .grid{display:grid; grid-template-columns:repeat(12, 1fr); gap:1rem}
     .card{grid-column:span 3; background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
-    .art{height:180px; background:#0f1421; display:flex; align-items:center; justify-content:center}
-    .art img{width:100%; height:100%; object-fit:cover}
+    .art {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      background: #0f1421;
+      overflow: hidden;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .art img{width:100%; height:100%; object-fit:cover,display: block;}
+    .art img:hover {
+      transform: scale(1.03);
+      transition: transform 0.3s ease;
+    }
+
     .info{padding:1rem}
     .title{font-weight:700; margin:0 0 .35rem}
     .meta{display:flex; gap:1rem; color:var(--muted); font-size:.95rem}
