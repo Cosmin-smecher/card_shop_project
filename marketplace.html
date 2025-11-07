@@ -165,7 +165,7 @@
         </div>`;
       return el;
     }
-    const API = 'http://localhost:5010'
+    const API = 'https://arcana-forge-api.onrender.com'
     async function loadMarket(){
       const res = await fetch(`${API}/api/cards`);
       const items = await res.json();
