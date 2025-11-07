@@ -100,7 +100,24 @@ def dedupe_cards():
             cur.executemany("DELETE FROM cards WHERE id = ?", [(i,) for i in others])
 
         con.commit()
+def seed_missing_stock():
+    with get_conn() as con:
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+        rows = cur.execute("""
+            SELECT c.id, c.name
+            FROM cards c
+            LEFT JOIN card_stock s ON s.card_id = c.id
+            WHERE s.card_id IS NULL
+        """).fetchall()
 
+        for r in rows:
+            price, qty = derive_price_qty(r["name"], r["id"])
+            cur.execute(
+                "INSERT INTO card_stock(card_id, quantity, price) VALUES(?,?,?)",
+                (r["id"], int(qty), float(price))
+            )
+        con.commit()
 def create_name_unique_index():
     """Create case-insensitive uniqueness on cards.name after dedupe."""
     with get_conn() as con:
@@ -111,6 +128,7 @@ def create_name_unique_index():
 
 ensure_stock_schema()
 dedupe_cards()
+seed_missing_stock()
 create_name_unique_index()
 
 
