@@ -1,4 +1,3 @@
-<script>
 // ---- Minimal cart store in localStorage ----
 const CART_KEY = 'arcana_cart_v1';
 
@@ -44,4 +43,3 @@ function removeFromCart(id) {
   saveCart(cart);
 }
 document.addEventListener('DOMContentLoaded', updateCartBadge);
-</script>
