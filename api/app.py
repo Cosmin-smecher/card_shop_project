@@ -187,24 +187,27 @@ def get_card(card_id: int):
         cur.execute(
             """
             SELECT
-              id,
-              COALESCE(name, '')        AS name,
-              COALESCE(card_type, '')   AS card_type,
-              COALESCE(cost, 0)         AS cost,
-              COALESCE(attack, 0)       AS attack,
-              COALESCE(health, 0)       AS health,
-              COALESCE(tribe, '')       AS tribe,
-              COALESCE(text, '')        AS text
-            FROM cards
-            WHERE id=?
+              c.id,
+              COALESCE(c.name,'')        AS name,
+              COALESCE(c.card_type,'')   AS card_type,
+              COALESCE(c.cost,0)         AS cost,
+              COALESCE(c.attack,0)       AS attack,
+              COALESCE(c.health,0)       AS health,
+              COALESCE(c.tribe,'')       AS tribe,
+              COALESCE(c.text,'')        AS text,
+              s.quantity                 AS stock_qty,
+              s.price                    AS stock_price
+            FROM cards c
+            LEFT JOIN card_stock s ON s.card_id = c.id
+            WHERE c.id = ?
             """,
-            (card_id,),
+            (card_id,)
         )
-
         row = cur.fetchone()
         if not row:
-            raise HTTPException(404, detail="Card not found")
+            raise HTTPException(status_code=404, detail="Card not found")
         return row_to_card(row)
+
 
 @API.post("/api/cards", response_model=Card, status_code=201)
 def create_card(card: CardIn):
