@@ -24,6 +24,16 @@ API.add_middleware(
 
 
 # ---- STOCK TABLE CREATION ----
+def derive_price_qty(name: str, seed_extra: int = 0) -> tuple[float, int]:
+    """
+    Generates a deterministic placeholder price & quantity based on name/id.
+    """
+    base = sum(ord(c) for c in name) + seed_extra
+    r = (abs((base * 9301 + 49297) % 233280) / 233280.0)
+    price = round(0.5 + r * 9.5, 2)   # 0.5 .. 10.0g
+    qty = max(1, int(1 + r * 20))     # 1 .. 20
+    return price, qty
+
 def ensure_stock_schema():
     with get_conn() as con:
         con.execute("""
