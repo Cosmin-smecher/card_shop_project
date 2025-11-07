@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 
 from .db import get_conn
-
+from .db import get_conn
 # ---- CONFIG ----
 APP_ROOT = Path(__file__).resolve().parents[1]  # project root (where index.html lives)
 ASSETS_DIR = APP_ROOT / "assets" / "cards"     # where your PNGs live
@@ -19,6 +19,17 @@ API.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# ---- STOCK TABLE CREATION ----
+def ensure_stock_schema():
+    with get_conn() as con:
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS card_stock(
+            card_id INTEGER PRIMARY KEY REFERENCES cards(id) ON DELETE CASCADE,
+            quantity INTEGER NOT NULL DEFAULT 0,
+            price REAL NOT NULL DEFAULT 1.0
+        );
+        """)
+ensure_stock_schema()
 
 # ---- SCHEMA MODELS (match *your* DB columns) ----
 # Your DB columns: id, name, card_type, cost, attack, health, tribe, text, keywords_json (ignore)
@@ -92,7 +103,14 @@ def derive_price_qty(name: str, seed_extra: int = 0) -> tuple[float, int]:
 def row_to_card(row) -> Card:
     name = row["name"]
     image = guess_image_path(name)
-    price, qty = derive_price_qty(name, row["id"])
+
+    # Prefer stored stock; fallback to generated placeholders
+    if row["stock_qty"] is not None and row["stock_price"] is not None:
+        quantity = int(row["stock_qty"])
+        price = float(row["stock_price"])
+    else:
+        price, quantity = derive_price_qty(name, row["id"])
+
     return Card(
         id=row["id"],
         name=name,
@@ -104,7 +122,7 @@ def row_to_card(row) -> Card:
         text=row["text"],
         image=image,
         price=price,
-        quantity=qty,
+        quantity=quantity,
     )
 
 # ---- Routes ----
@@ -118,41 +136,49 @@ def list_cards(q: Optional[str] = None):
             cur.execute(
                 """
                 SELECT
-                  id,
-                  COALESCE(name, '')        AS name,
-                  COALESCE(card_type, '')   AS card_type,
-                  COALESCE(cost, 0)         AS cost,
-                  COALESCE(attack, 0)       AS attack,
-                  COALESCE(health, 0)       AS health,
-                  COALESCE(tribe, '')       AS tribe,
-                  COALESCE(text, '')        AS text
-                FROM cards
-                WHERE lower(COALESCE(name, '')) LIKE ?
-                   OR lower(COALESCE(card_type, '')) LIKE ?
-                   OR lower(COALESCE(tribe, '')) LIKE ?
-                ORDER BY name ASC
+                  c.id,
+                  COALESCE(c.name,'')        AS name,
+                  COALESCE(c.card_type,'')   AS card_type,
+                  COALESCE(c.cost,0)         AS cost,
+                  COALESCE(c.attack,0)       AS attack,
+                  COALESCE(c.health,0)       AS health,
+                  COALESCE(c.tribe,'')       AS tribe,
+                  COALESCE(c.text,'')        AS text,
+                  s.quantity                 AS stock_qty,
+                  s.price                    AS stock_price
+                FROM cards c
+                LEFT JOIN card_stock s ON s.card_id = c.id
+                WHERE
+                  lower(COALESCE(c.name,'')) LIKE ?
+                  OR lower(COALESCE(c.card_type,'')) LIKE ?
+                  OR lower(COALESCE(c.tribe,'')) LIKE ?
+                ORDER BY c.name ASC
                 """,
-                (qlike, qlike, qlike),
+                (qlike, qlike, qlike)
             )
         else:
             cur.execute(
                 """
                 SELECT
-                  id,
-                  COALESCE(name, '')        AS name,
-                  COALESCE(card_type, '')   AS card_type,
-                  COALESCE(cost, 0)         AS cost,
-                  COALESCE(attack, 0)       AS attack,
-                  COALESCE(health, 0)       AS health,
-                  COALESCE(tribe, '')       AS tribe,
-                  COALESCE(text, '')        AS text
-                FROM cards
-                ORDER BY name ASC
+                  c.id,
+                  COALESCE(c.name,'')        AS name,
+                  COALESCE(c.card_type,'')   AS card_type,
+                  COALESCE(c.cost,0)         AS cost,
+                  COALESCE(c.attack,0)       AS attack,
+                  COALESCE(c.health,0)       AS health,
+                  COALESCE(c.tribe,'')       AS tribe,
+                  COALESCE(c.text,'')        AS text,
+                  s.quantity                 AS stock_qty,
+                  s.price                    AS stock_price
+                FROM cards c
+                LEFT JOIN card_stock s ON s.card_id = c.id
+                ORDER BY c.name ASC
                 """
             )
 
         rows = cur.fetchall()
         return [row_to_card(r) for r in rows]
+
 
 @API.get("/api/cards/{card_id}", response_model=Card)
 def get_card(card_id: int):
