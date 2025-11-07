@@ -7,18 +7,21 @@ import os
 
 from .db import get_conn
 from .db import get_conn
+
 # ---- CONFIG ----
 APP_ROOT = Path(__file__).resolve().parents[1]  # project root (where index.html lives)
-ASSETS_DIR = APP_ROOT / "assets" / "cards"     # where your PNGs live
+ASSETS_DIR = APP_ROOT / "assets" / "cards"  # where your PNGs live
 
 API = FastAPI(title="Card API (FastAPI, existing SQLite)")
 API.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000","https://arcana-forge-frontend.onrender.com", "*"],
+    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000", "https://arcana-forge-frontend.onrender.com", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 # ---- STOCK TABLE CREATION ----
 def ensure_stock_schema():
     with get_conn() as con:
@@ -29,7 +32,13 @@ def ensure_stock_schema():
             price REAL NOT NULL DEFAULT 1.0
         );
         """)
+        # Create a case-insensitive uniqueness on card name (prevents duplicate rows by name)
+        con.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS ux_cards_name_nocase
+                ON cards(name COLLATE NOCASE);
+                """)
 ensure_stock_schema()
+
 
 # ---- SCHEMA MODELS (match *your* DB columns) ----
 # Your DB columns: id, name, card_type, cost, attack, health, tribe, text, keywords_json (ignore)
@@ -37,11 +46,12 @@ ensure_stock_schema()
 class CardIn(BaseModel):
     name: str
     card_type: str
-    cost: int = Field(ge=0)
-    attack: int = Field(ge=0)
-    health: int = Field(ge=0)
-    tribe: str
-    text: str
+    cost: int
+    attack: Optional[int] = None
+    health: Optional[int] = None
+    tribe: Optional[str] = ""
+    text: Optional[str] = ""
+
 
 class Card(BaseModel):
     id: int
@@ -57,10 +67,12 @@ class Card(BaseModel):
     price: float
     quantity: int
 
+
 # ---- Helpers: derive image/price/qty for UI ----
 
 def _clean(s: str) -> str:
     return " ".join(s.strip().split())
+
 
 def guess_image_path(name: str) -> str:
     """Try to find a matching PNG in assets/cards by name.
@@ -74,19 +86,19 @@ def guess_image_path(name: str) -> str:
     # 1) Exact filename: "<name>.png"
     exact = ASSETS_DIR / f"{_clean(name)}.png"
     if exact.exists():
-        return str(Path("assets/cards") / exact.name).replace("\\","/")
+        return str(Path("assets/cards") / exact.name).replace("\\", "/")
 
     # 2) Case-insensitive scan of all PNGs
     for p in ASSETS_DIR.glob("*.png"):
         if p.stem.lower() == target:
-            return str(Path("assets/cards") / p.name).replace("\\","/")
+            return str(Path("assets/cards") / p.name).replace("\\", "/")
 
     # 3) Loose match: ignore spaces/underscores/dashes
     loose = target.replace(" ", "").replace("_", "").replace("-", "")
     for p in ASSETS_DIR.glob("*.png"):
         stem = p.stem.lower().replace(" ", "").replace("_", "").replace("-", "")
         if stem == loose:
-            return str(Path("assets/cards") / p.name).replace("\\","/")
+            return str(Path("assets/cards") / p.name).replace("\\", "/")
 
     return "assets/cards/placeholder.png"
 
@@ -96,7 +108,7 @@ def derive_price_qty(name: str, seed_extra: int = 0) -> tuple[float, int]:
     base = sum(ord(c) for c in name) + seed_extra
     r = (abs((base * 9301 + 49297) % 233280) / 233280.0)
     price = round(0.5 + r * 9.5, 2)  # 0.5 .. 10.0
-    qty = max(1, int(1 + r * 20))    # 1 .. 20
+    qty = max(1, int(1 + r * 20))  # 1 .. 20
     return price, qty
 
 
@@ -124,6 +136,7 @@ def row_to_card(row) -> Card:
         price=price,
         quantity=quantity,
     )
+
 
 # ---- Routes ----
 
@@ -211,32 +224,81 @@ def get_card(card_id: int):
 
 @API.post("/api/cards", response_model=Card, status_code=201)
 def create_card(card: CardIn):
+    name = card.name.strip()
+    ctype = (card.card_type or "").strip()
+
+    # If it's a Spell, force stats to 0 no matter what was sent
+    attack = 0 if ctype.lower() == "spell" else int(card.attack or 0)
+    health = 0 if ctype.lower() == "spell" else int(card.health or 0)
+
     with get_conn() as con:
         cur = con.cursor()
-        cur.execute(
-            """
-            INSERT INTO cards (name, card_type, cost, attack, health, tribe, text)
-            VALUES (?,?,?,?,?,?,?)
-            """,
-            (
-                card.name.strip(),
-                card.card_type.strip(),
-                int(card.cost),
-                int(card.attack),
-                int(card.health),
-                card.tribe.strip(),
-                card.text.strip(),
-            ),
-        )
-        new_id = cur.lastrowid
-        con.commit()
-        # Fetch the newly created row
-        cur.execute(
-            "SELECT id, name, card_type, cost, attack, health, tribe, text FROM cards WHERE id=?",
-            (new_id,),
-        )
+
+        # 1) Do we already have a card with this name (case-insensitive)?
+        cur.execute("SELECT id FROM cards WHERE name = ? COLLATE NOCASE", (name,))
         row = cur.fetchone()
-        return row_to_card(row)
+        if row:
+            card_id = row["id"]
+            # increment quantity in stock for that existing card
+            cur.execute("SELECT quantity, price FROM card_stock WHERE card_id = ?", (card_id,))
+            s = cur.fetchone()
+            if s:
+                cur.execute("UPDATE card_stock SET quantity = quantity + 1 WHERE card_id = ?", (card_id,))
+            else:
+                # first time we stock this card: choose a price and set qty=1
+                price, _ = derive_price_qty(name, card_id)
+                cur.execute("INSERT INTO card_stock(card_id, quantity, price) VALUES(?,?,?)",
+                            (card_id, 1, float(price)))
+            con.commit()
+
+            # Return the updated card (using the JOIN)
+            cur.execute("""
+                SELECT
+                  c.id,
+                  COALESCE(c.name,'')      AS name,
+                  COALESCE(c.card_type,'') AS card_type,
+                  COALESCE(c.cost,0)       AS cost,
+                  COALESCE(c.attack,0)     AS attack,
+                  COALESCE(c.health,0)     AS health,
+                  COALESCE(c.tribe,'')     AS tribe,
+                  COALESCE(c.text,'')      AS text,
+                  s.quantity               AS stock_qty,
+                  s.price                  AS stock_price
+                FROM cards c
+                LEFT JOIN card_stock s ON s.card_id = c.id
+                WHERE c.id = ?
+            """, (card_id,))
+            return row_to_card(cur.fetchone())
+
+        # 2) New card name → insert into cards and create stock row with qty=1
+        cur.execute("""
+            INSERT INTO cards (name, card_type, cost, attack, health, tribe, text)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (name, ctype, int(card.cost), attack, health, (card.tribe or "").strip(), (card.text or "").strip()))
+        new_id = cur.lastrowid
+
+        price, _ = derive_price_qty(name, new_id)
+        cur.execute("INSERT INTO card_stock(card_id, quantity, price) VALUES(?,?,?)",
+                    (new_id, 1, float(price)))
+        con.commit()
+
+        cur.execute("""
+            SELECT
+              c.id,
+              COALESCE(c.name,'')      AS name,
+              COALESCE(c.card_type,'') AS card_type,
+              COALESCE(c.cost,0)       AS cost,
+              COALESCE(c.attack,0)     AS attack,
+              COALESCE(c.health,0)     AS health,
+              COALESCE(c.tribe,'')     AS tribe,
+              COALESCE(c.text,'')      AS text,
+              s.quantity               AS stock_qty,
+              s.price                  AS stock_price
+            FROM cards c
+            LEFT JOIN card_stock s ON s.card_id = c.id
+            WHERE c.id = ?
+        """, (new_id,))
+        return row_to_card(cur.fetchone())
 
 @API.get("/healthz")
 def healthz():
