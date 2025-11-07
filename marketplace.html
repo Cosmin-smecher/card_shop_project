@@ -1,157 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Arcana Forge — Marketplace</title>
-  <meta name="description" content="Browse all cards available in the marketplace." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600..900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#0b0e14;         /* deep space */
-      --bg-elev:#121723;    /* raised surfaces */
-      --ink:#e8ecf3;        /* primary text */
-      --muted:#a6b0c3;      /* secondary text */
-      --brand:#c9a86a;      /* gold */
-      --brand-2:#5dd4ff;    /* arcane teal */
-      --accent:#9b6cff;     /* violet accent */
-      --card:#0f1421;
-      --radius:18px;
-      --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; color:var(--ink);
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
-      background:
-        radial-gradient(1200px 600px at 80% -10%, rgba(93,212,255,.15), transparent 60%),
-        radial-gradient(900px 500px at 10% -15%, rgba(155,108,255,.15), transparent 60%),
-        var(--bg);
-      line-height:1.6;
-    }
-    a{color:inherit;text-decoration:none}
-    .container{width:min(1200px, 92%); margin-inline:auto}
-    .pill{display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .75rem; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:.85rem; color:var(--muted)}
-    .btn{display:inline-flex; align-items:center; gap:.55rem; padding:.85rem 1.1rem; border-radius:14px; font-weight:700; background:linear-gradient(180deg, #e6cf92, #c9a86a); color:#1a1200; box-shadow:0 8px 20px rgba(201,168,106,.35);}
-    .btn:hover{transform:translateY(-1px); box-shadow:0 12px 24px rgba(201,168,106,.45)}
-    .btn.ghost{background:transparent; color:var(--brand); border:1px solid rgba(201,168,106,.25)}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Arcana Forge — Marketplace</title>
+    <meta name="description" content="Browse all cards available in the marketplace."/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600..900&family=Inter:wght@400;600;700&display=swap"
+          rel="stylesheet">
+    <style>
+        :root{
+          --bg:#0b0e14;         /* deep space */
+          --bg-elev:#121723;    /* raised surfaces */
+          --ink:#e8ecf3;        /* primary text */
+          --muted:#a6b0c3;      /* secondary text */
+          --brand:#c9a86a;      /* gold */
+          --brand-2:#5dd4ff;    /* arcane teal */
+          --accent:#9b6cff;     /* violet accent */
+          --card:#0f1421;
+          --radius:18px;
+          --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+          margin:0; color:var(--ink);
+          font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+          background:
+            radial-gradient(1200px 600px at 80% -10%, rgba(93,212,255,.15), transparent 60%),
+            radial-gradient(900px 500px at 10% -15%, rgba(155,108,255,.15), transparent 60%),
+            var(--bg);
+          line-height:1.6;
+        }
+        a{color:inherit;text-decoration:none}
+        .container{width:min(1200px, 92%); margin-inline:auto}
+        .pill{display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .75rem; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:.85rem; color:var(--muted)}
+        .btn{display:inline-flex; align-items:center; gap:.55rem; padding:.85rem 1.1rem; border-radius:14px; font-weight:700; background:linear-gradient(180deg, #e6cf92, #c9a86a); color:#1a1200; box-shadow:0 8px 20px rgba(201,168,106,.35);}
+        .btn:hover{transform:translateY(-1px); box-shadow:0 12px 24px rgba(201,168,106,.45)}
+        .btn.ghost{background:transparent; color:var(--brand); border:1px solid rgba(201,168,106,.25)}
 
-    header{position:sticky; top:0; z-index:50; border-bottom:1px solid rgba(255,255,255,.08);}
-    .nav{display:flex; align-items:center; justify-content:space-between; padding:.75rem 0}
-    .brand{display:flex; align-items:center; gap:.6rem; font-family:Cinzel,serif; letter-spacing:.5px}
-    .brand-badge{width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff6 0, #fff1 40%, transparent 60%), linear-gradient(135deg, var(--brand), var(--accent)); box-shadow:0 8px 20px rgba(155,108,255,.25)}
-    nav ul{display:flex; gap:1rem; padding:0; margin:0; list-style:none}
-    nav a{padding:.6rem .8rem; border-radius:10px; color:var(--muted)}
-    nav a:hover{background:rgba(255,255,255,.06); color:var(--ink)}
+        header{position:sticky; top:0; z-index:50; border-bottom:1px solid rgba(255,255,255,.08);}
+        .nav{display:flex; align-items:center; justify-content:space-between; padding:.75rem 0}
+        .brand{display:flex; align-items:center; gap:.6rem; font-family:Cinzel,serif; letter-spacing:.5px}
+        .brand-badge{width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff6 0, #fff1 40%, transparent 60%), linear-gradient(135deg, var(--brand), var(--accent)); box-shadow:0 8px 20px rgba(155,108,255,.25)}
+        nav ul{display:flex; gap:1rem; padding:0; margin:0; list-style:none}
+        nav a{padding:.6rem .8rem; border-radius:10px; color:var(--muted)}
+        nav a:hover{background:rgba(255,255,255,.06); color:var(--ink)}
 
-    /* Page head */
-    .page-head{padding:2rem 0 1rem}
-    .page-head h1{margin:0; font-family:Cinzel,serif; font-size:clamp(1.6rem,3.5vw,2.4rem)}
-    .sub{color:var(--muted)}
+        /* Page head */
+        .page-head{padding:2rem 0 1rem}
+        .page-head h1{margin:0; font-family:Cinzel,serif; font-size:clamp(1.6rem,3.5vw,2.4rem)}
+        .sub{color:var(--muted)}
 
-    /* Controls */
-    .controls{display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin:1rem 0 1.5rem}
-    .search{flex:1; min-width:240px; display:flex; gap:.5rem}
-    .search input{flex:1; padding:.9rem 1rem; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0d1220; color:var(--ink)}
+        /* Controls */
+        .controls{display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin:1rem 0 1.5rem}
+        .search{flex:1; min-width:240px; display:flex; gap:.5rem}
+        .search input{flex:1; padding:.9rem 1rem; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0d1220; color:var(--ink)}
 
-    /* Grid */
-    .grid{display:grid; grid-template-columns:repeat(12, 1fr); gap:1rem}
-    .card{grid-column:span 3; background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
-    .art {
-      aspect-ratio: 16 / 9;
-      width: 100%;
-      background: #0f1421;
-      overflow: hidden;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .art img{width:100%; height:100%; object-fit:contain,display: block;background-color: #0f1421;}
-    .art img:hover {
-      transform: scale(1.03);
-      transition: transform 0.3s ease;
-    }
+        /* Grid */
+        .grid{display:grid; grid-template-columns:repeat(12, 1fr); gap:1rem}
+        .card{grid-column:span 3; background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+        .art {
+          aspect-ratio: 16 / 9;
+          width: 100%;
+          background: #0f1421;
+          overflow: hidden;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .art img{width:100%; height:100%; object-fit:contain; display: block; background-color: #0f1421;}
+        .art img:hover {
+          transform: scale(1.03);
+          transition: transform 0.3s ease;
+        }
 
-    .info{padding:1rem}
-    .title{font-weight:700; margin:0 0 .35rem}
-    .meta{display:flex; gap:1rem; color:var(--muted); font-size:.95rem}
+        .info{padding:1rem}
+        .title{font-weight:700; margin:0 0 .35rem}
+        .meta{display:flex; gap:1rem; color:var(--muted); font-size:.95rem}
 
-    footer{padding:2rem 0 3rem; border-top:1px solid rgba(255,255,255,.08); color:var(--muted); margin-top:2rem}
+        footer{padding:2rem 0 3rem; border-top:1px solid rgba(255,255,255,.08); color:var(--muted); margin-top:2rem}
 
-    @media (max-width: 1024px){ .card{grid-column:span 4} }
-    @media (max-width: 720px){ .card{grid-column:span 6} }
-    @media (max-width: 520px){ .card{grid-column:span 12} }
-  </style>
+        @media (max-width: 1024px){ .card{grid-column:span 4} }
+        @media (max-width: 720px){ .card{grid-column:span 6} }
+        @media (max-width: 520px){ .card{grid-column:span 12} }
+    </style>
 </head>
 <body>
-  <!-- NAVBAR -->
-  <header>
+<!-- NAVBAR -->
+<header>
     <div class="container nav">
-      <a class="brand" href="index.html">
-        <span class="brand-badge" aria-hidden="true"></span>
-        <span>Arcana Forge</span>
-      </a>
-      <nav aria-label="Primary">
-        <ul>
-          <li><a href="index.html#archetypes">Deck Archetypes</a></li>
-          <li><a href="index.html#lore">Lore</a></li>
-          <li><a href="index.html#news">News</a></li>
-          <li><a href="index.html#community">Community</a></li>
-        </ul>
-      </nav>
-      <div class="nav-cta">
-        <a class="btn ghost" href="index.html">Home</a>
-        <a class="btn" href="#" aria-current="page">Marketplace</a>
-      </div>
-    </div>
-  </header>
-
-  <!-- PAGE HEAD -->
-  <section class="page-head">
-    <div class="container">
-      <h1>Marketplace</h1>
-      <div class="sub">Browse all cards. Prices & quantities are placeholders for now.</div>
-      <div class="controls">
-        <div class="search">
-          <input id="search" placeholder="Search cards by name…" aria-label="Search" />
-          <button class="btn" id="create-card">Create Card</button>
+        <a class="brand" href="index.html">
+            <span class="brand-badge" aria-hidden="true"></span>
+            <span>Arcana Forge</span>
+        </a>
+        <nav aria-label="Primary">
+            <ul>
+                <li><a href="index.html#archetypes">Deck Archetypes</a></li>
+                <li><a href="index.html#lore">Lore</a></li>
+                <li><a href="index.html#news">News</a></li>
+                <li><a href="index.html#community">Community</a></li>
+            </ul>
+        </nav>
+        <div class="nav-cta">
+            <a class="btn ghost" href="index.html">Home</a>
+            <a class="btn" href="#" aria-current="page">Marketplace</a>
         </div>
-      </div>
     </div>
-  </section>
+</header>
 
-  <!-- GRID -->
-  <section>
+<!-- PAGE HEAD -->
+<section class="page-head">
     <div class="container">
-      <div class="grid" id="market-grid" aria-live="polite"></div>
+        <h1>Marketplace</h1>
+        <div class="sub">Browse all cards. Prices & quantities are placeholders for now.</div>
+        <div class="controls">
+            <div class="search">
+                <input id="search" placeholder="Search cards by name…" aria-label="Search"/>
+                <button class="btn" id="create-card">Create Card</button>
+            </div>
+        </div>
     </div>
-  </section>
+</section>
 
-  <!-- FOOTER -->
-  <footer>
+<!-- GRID -->
+<section>
+    <div class="container">
+        <div class="grid" id="market-grid" aria-live="polite"></div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
     <div class="container" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem">
-      <div>
-        <div class="brand" style="margin-bottom:.5rem">
-          <span class="brand-badge" aria-hidden="true"></span>
-          <span>Arcana Forge</span>
+        <div>
+            <div class="brand" style="margin-bottom:.5rem">
+                <span class="brand-badge" aria-hidden="true"></span>
+                <span>Arcana Forge</span>
+            </div>
+            <p>Marketplace • © <span id="year"></span> Arcana Forge.</p>
         </div>
-        <p>Marketplace • © <span id="year"></span> Arcana Forge.</p>
-      </div>
-      <nav aria-label="Footer" style="justify-self:end">
-        <ul style="display:flex; gap:1rem; list-style:none; margin:0; padding:0">
-          <li><a href="#">Privacy</a></li>
-          <li><a href="#">Terms</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-      </nav>
+        <nav aria-label="Footer" style="justify-self:end">
+            <ul style="display:flex; gap:1rem; list-style:none; margin:0; padding:0">
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Terms</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
     </div>
-  </footer>
+</footer>
 
-  <script>
+<script>
     // Year
     document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -217,6 +218,6 @@
       });
     }
     loadMarket().catch(console.error);
-  </script>
+</script>
 </body>
 </html>
