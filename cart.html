@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cart — Arcana Forge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600..900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b0e14;--ink:#e8ecf3;--muted:#a6b0c3;--brand:#c9a86a;--card:#0f1421;--radius:18px}
+    *{box-sizing:border-box}
+    body{margin:0;color:var(--ink);font-family:Inter,system-ui;background:radial-gradient(1200px 600px at 80% -10%, rgba(93,212,255,.15), transparent 60%),radial-gradient(900px 500px at 10% -15%, rgba(155,108,255,.15), transparent 60%),var(--bg)}
+    .container{width:min(1100px,92%);margin:0 auto}
+    header{position:sticky;top:0;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(11,14,20,.6);backdrop-filter:blur(6px)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 0}
+    .brand{display:flex;gap:.6rem;align-items:center;font-family:Cinzel,serif}
+    .brand-badge{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#c9a86a,#9b6cff)}
+    .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.7rem 1rem;border-radius:14px;font-weight:700;background:linear-gradient(180deg,#e6cf92,#c9a86a);color:#1a1200;text-decoration:none}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.16);color:var(--ink)}
+    .panel{background:var(--card);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:1.2rem}
+    h1{font-family:Cinzel,serif;margin:1.2rem 0}
+    .row{display:grid;grid-template-columns:80px 1fr 120px 120px 120px 40px;gap:1rem;align-items:center}
+    .row.header{color:var(--muted);font-weight:600}
+    .row + .row{margin-top:.8rem}
+    .thumb{width:80px;height:80px;border-radius:12px;object-fit:cover;background:#0d1220;border:1px solid rgba(255,255,255,.08)}
+    input.qty{width:80px;padding:.55rem .6rem;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0d1220;color:var(--ink)}
+    .right{text-align:right}
+    .empty{color:var(--muted);padding:2rem 0}
+    .total{margin-top:1rem;display:flex;justify-content:flex-end;gap:1rem;align-items:center}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <span class="brand-badge"></span><span>Arcana Forge</span>
+      </a>
+      <div class="nav-cta">
+        <a class="btn ghost" href="marketplace.html">Back to Marketplace</a>
+        <a href="cart.html" class="btn" style="position:relative; margin-left:.5rem;">
+          Cart
+          <span data-cart-badge
+            style="position:absolute; top:-6px; right:-8px; min-width:18px; height:18px;
+                   border-radius:9px; background:#e6cf92; color:#1a1200; font-weight:800;
+                   display:inline-flex; align-items:center; justify-content:center;
+                   font-size:11px; padding:0 5px; box-shadow:0 0 0 2px rgba(0,0,0,.3);
+                   visibility:hidden;"></span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding:1.2rem 0 2rem">
+    <h1>Shopping Cart</h1>
+
+    <div id="cart-root" class="panel"></div>
+
+    <div class="total">
+      <div style="color:var(--muted)">Total:</div>
+      <div id="cart-total" style="font-weight:800">0.00g</div>
+      <a class="btn" href="#">Checkout (placeholder)</a>
+    </div>
+  </main>
+
+  <script src="cart.js"></script>
+  <script>
+    function fmt(n){return Number(n||0).toFixed(2)+'g';}
+
+    function render(){
+      const root = document.getElementById('cart-root');
+      const items = loadCart(); // from cart.js
+      if(!items.length){
+        root.innerHTML = '<div class="empty">Your cart is empty.</div>';
+        document.getElementById('cart-total').textContent = '0.00g';
+        return;
+      }
+
+      let html = `
+        <div class="row header">
+          <div>Item</div><div></div>
+          <div class="right">Price</div>
+          <div class="right">Qty</div>
+          <div class="right">Subtotal</div>
+          <div></div>
+        </div>
+      `;
+      let total = 0;
+
+      for(const it of items){
+        const subtotal = (Number(it.price)||0) * (Number(it.qty)||0);
+        total += subtotal;
+        html += `
+          <div class="row">
+            <img class="thumb" src="${it.image ? it.image : ''}" alt="">
+            <div>${it.name}</div>
+            <div class="right">${fmt(it.price)}</div>
+            <div class="right">
+              <input class="qty" type="number" min="1" value="${it.qty}"
+                     data-id="${it.id}">
+            </div>
+            <div class="right">${fmt(subtotal)}</div>
+            <div class="right">
+              <button class="btn ghost" data-remove="${it.id}" title="Remove">✕</button>
+            </div>
+          </div>
+        `;
+      }
+      root.innerHTML = html;
+      document.getElementById('cart-total').textContent = fmt(total);
+
+      // wire qty changes
+      root.querySelectorAll('input.qty').forEach(inp=>{
+        inp.addEventListener('change', e=>{
+          const id = Number(e.target.dataset.id);
+          const qty = Math.max(1, parseInt(e.target.value||'1',10));
+          setCartQty(id, qty);   // from cart.js
+          render();
+        });
+      });
+      // wire removals
+      root.querySelectorAll('[data-remove]').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          removeFromCart(Number(btn.dataset.remove)); // from cart.js
+          render();
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', render);
+  </script>
+</body>
+</html>
