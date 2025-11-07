@@ -107,6 +107,16 @@
         <div class="nav-cta">
             <a class="btn ghost" href="index.html">Home</a>
             <a class="btn" href="#" aria-current="page">Marketplace</a>
+            <a href="cart.html" class="btn" style="position:relative; margin-left:.5rem;">
+                Cart
+                <span data-cart-badge
+                      style="position:absolute; top:-6px; right:-8px; min-width:18px; height:18px;
+               border-radius:9px; background:#e6cf92; color:#1a1200; font-weight:800;
+               display:inline-flex; align-items:center; justify-content:center;
+               font-size:11px; padding:0 5px; box-shadow:0 0 0 2px rgba(0,0,0,.3);
+               visibility:hidden;"></span>
+            </a>
+
         </div>
     </div>
 </header>
@@ -218,6 +228,6 @@
       });
     }
     loadMarket().catch(console.error);
-</script>
+<script src="cart.js"></script>
 </body>
 </html>
