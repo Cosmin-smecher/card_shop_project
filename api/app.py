@@ -7,6 +7,7 @@ import os
 
 from .db import get_conn
 from .db import get_conn
+import sqlite3
 
 # ---- CONFIG ----
 APP_ROOT = Path(__file__).resolve().parents[1]  # project root (where index.html lives)
@@ -32,12 +33,86 @@ def ensure_stock_schema():
             price REAL NOT NULL DEFAULT 1.0
         );
         """)
-        # Create a case-insensitive uniqueness on card name (prevents duplicate rows by name)
+def _norm_name(name: str) -> str:
+    # collapse internal spaces and lowercase – "A   day  in the desert" == "a day in the desert"
+    return " ".join((name or "").split()).strip().lower()
+
+def dedupe_cards():
+    """
+    Merge duplicate cards (case-insensitive, whitespace-collapsed names).
+    - Keep the smallest id in each duplicate group as the 'master'.
+    - Sum quantities from all duplicates into the master.
+    - Keep master's existing price if present, else default 1.0.
+    - Delete other duplicate rows (card_stock rows will cascade-delete).
+    """
+    with get_conn() as con:
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        # Get all cards (id, name)
+        rows = cur.execute("SELECT id, name FROM cards").fetchall()
+
+        # Group ids by normalized name
+        groups = {}
+        for r in rows:
+            key = _norm_name(r["name"])
+            groups.setdefault(key, []).append(r["id"])
+
+        for key, ids in groups.items():
+            if len(ids) <= 1:
+                continue
+
+            ids.sort()
+            master = ids[0]
+            others = ids[1:]
+
+            # Total quantity across group
+            placeholders = ",".join("?" * len(ids))
+            total_qty = cur.execute(
+                f"SELECT COALESCE(SUM(quantity),0) FROM card_stock WHERE card_id IN ({placeholders})",
+                ids
+            ).fetchone()[0]
+
+            # Master's current qty
+            master_qty = cur.execute(
+                "SELECT COALESCE(quantity,0) FROM card_stock WHERE card_id = ?",
+                (master,)
+            ).fetchone()
+            master_qty = master_qty[0] if master_qty else 0
+
+            delta = total_qty - master_qty
+
+            # Ensure master has a stock row; keep its price if it exists, else 1.0
+            price_row = cur.execute("SELECT price FROM card_stock WHERE card_id = ?", (master,)).fetchone()
+            price_val = float(price_row["price"]) if (price_row and price_row["price"] is not None) else 1.0
+
+            cur.execute(
+                """
+                INSERT INTO card_stock(card_id, quantity, price)
+                VALUES(?, ?, ?)
+                ON CONFLICT(card_id) DO UPDATE SET
+                  quantity = card_stock.quantity + excluded.quantity
+                """,
+                (master, max(delta, 0), price_val)
+            )
+
+            # Delete duplicate cards (their card_stock will cascade)
+            cur.executemany("DELETE FROM cards WHERE id = ?", [(i,) for i in others])
+
+        con.commit()
+
+def create_name_unique_index():
+    """Create case-insensitive uniqueness on cards.name after dedupe."""
+    with get_conn() as con:
         con.execute("""
-                CREATE UNIQUE INDEX IF NOT EXISTS ux_cards_name_nocase
-                ON cards(name COLLATE NOCASE);
-                """)
+        CREATE UNIQUE INDEX IF NOT EXISTS ux_cards_name_nocase
+        ON cards(name COLLATE NOCASE);
+        """)
+
 ensure_stock_schema()
+dedupe_cards()
+create_name_unique_index()
+
 
 
 # ---- SCHEMA MODELS (match *your* DB columns) ----
@@ -304,4 +379,4 @@ def create_card(card: CardIn):
 def healthz():
     return {"ok": True}
 
-# Run with: uvicorn api.app:API --reload --port 5001
+
