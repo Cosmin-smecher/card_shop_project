@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arcana Forge — Card</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600..900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b0e14;--bg-elev:#121723;--ink:#e8ecf3;--muted:#a6b0c3;--brand:#c9a86a;--accent:#9b6cff;--card:#0f1421;--radius:18px;--shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);}
+    *{box-sizing:border-box}
+    body{margin:0;color:var(--ink);font-family:Inter,system-ui; background:radial-gradient(1200px 600px at 80% -10%, rgba(93,212,255,.15), transparent 60%),radial-gradient(900px 500px at 10% -15%, rgba(155,108,255,.15), transparent 60%),var(--bg);}
+    a{color:inherit;text-decoration:none}
+    .container{width:min(1100px,92%);margin-inline:auto}
+    header{position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(255,255,255,.08);} .nav{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0}
+    .brand{display:flex;gap:.6rem;align-items:center;font-family:Cinzel,serif} .brand-badge{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff6 0, #fff1 40%, transparent 60%),linear-gradient(135deg,var(--brand),var(--accent))}
+    .btn{display:inline-flex;align-items:center;gap:.55rem;padding:.85rem 1.1rem;border-radius:14px;font-weight:700;background:linear-gradient(180deg,#e6cf92,#c9a86a);color:#1a1200;box-shadow:0 8px 20px rgba(201,168,106,.35);} .btn.ghost{background:transparent;color:var(--brand);border:1px solid rgba(201,168,106,.25)}
+    .grid{display:grid;grid-template-columns: 1fr 1.1fr;gap:1.25rem;padding:2rem 0}
+    .panel{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .art{height:420px;border-radius:var(--radius);overflow:hidden}
+    .art img{width:100%;height:100%;object-fit:cover;display:block}
+    .info{padding:1.2rem}
+    .title{font-family:Cinzel,serif;font-size:clamp(1.6rem,3vw,2.2rem);margin:.2rem 0 .6rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin:.6rem 0}
+    .stat{background:#0d1220;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:.6rem;text-align:center}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="index.html"><span class="brand-badge"></span><span>Arcana Forge</span></a>
+      <div><a class="btn ghost" href="marketplace.html">Back to Marketplace</a></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="container grid">
+      <div class="panel art"><img id="img" alt=""></div>
+      <div class="panel info">
+        <div class="title" id="name">Loading…</div>
+        <div class="muted">Type: <span id="type">-</span> • Tribe: <span id="tribe">-</span></div>
+        <div class="stats">
+          <div class="stat"><div>Mana</div><strong id="mana">-</strong></div>
+          <div class="stat"><div>Attack</div><strong id="atk">-</strong></div>
+          <div class="stat"><div>Health</div><strong id="hp">-</strong></div>
+          <div class="stat"><div>Price</div><strong id="price">-</strong>g</div>
+        </div>
+        <p class="muted" id="desc"></p>
+        <p><span class="muted">Qty available:</span> <strong id="qty">-</strong></p>
+        <button class="btn" id="add">Add to cart</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const API = 'http://localhost:5010';
+    const qs = (k) => new URLSearchParams(location.search).get(k);
+
+    function addToCart(item){
+      const cart = JSON.parse(localStorage.getItem('cart')||'[]');
+      const i = cart.findIndex(x => x.id === item.id);
+      if(i>=0) cart[i].count = (cart[i].count||0)+1; else cart.push({...item, count:1});
+      localStorage.setItem('cart', JSON.stringify(cart));
+      alert('Added to cart!');
+    }
+
+    async function load(){
+      const id = qs('id');
+      if(!id){ location.href = 'marketplace.html'; return; }
+      const res = await fetch(`${API}/api/cards/${id}`);
+      if(!res.ok){ alert('Card not found'); location.href='marketplace.html'; return; }
+      const c = await res.json();
+      document.getElementById('img').src = encodeURI(c.image);
+      document.getElementById('img').alt = c.name;
+      document.getElementById('name').textContent = c.name;
+      document.getElementById('type').textContent = c.card_type;
+      document.getElementById('tribe').textContent = c.tribe;
+      document.getElementById('mana').textContent = c.cost;
+      document.getElementById('atk').textContent = c.attack;
+      document.getElementById('hp').textContent = c.health;
+      document.getElementById('price').textContent = Number(c.price).toFixed(2);
+      document.getElementById('qty').textContent = c.quantity;
+      document.getElementById('desc').textContent = c.text;
+
+      document.getElementById('add').addEventListener('click', () => addToCart({id: c.id, name: c.name, price: c.price}));
+    }
+    load().catch(console.error);
+  </script>
+</body>
+</html>

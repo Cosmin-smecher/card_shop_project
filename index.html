@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arcana Forge — Home</title>
+  <meta name="description" content="Arcana Forge — Home of decks, lore and events for our fantasy card game." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600..900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0e14;         /* deep space */
+      --bg-elev:#121723;    /* raised surfaces */
+      --ink:#e8ecf3;        /* primary text */
+      --muted:#a6b0c3;      /* secondary text */
+      --brand:#c9a86a;      /* gold */
+      --brand-2:#5dd4ff;    /* arcane teal */
+      --accent:#9b6cff;     /* violet accent */
+      --success:#2ecc71;
+      --danger:#ff5c5c;
+      --card:#0f1421;
+      --radius:18px;
+      --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+      --glass:backdrop-filter: blur(10px); background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(93,212,255,.15), transparent 60%),
+        radial-gradient(900px 500px at 10% -15%, rgba(155,108,255,.15), transparent 60%),
+        var(--bg);
+      line-height:1.6;
+    }
+
+    a{color:inherit;text-decoration:none}
+    .container{width:min(1200px, 92%); margin-inline:auto}
+    .pill{display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .75rem; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:.85rem; color:var(--muted)}
+    .btn{display:inline-flex; align-items:center; gap:.55rem; padding:.85rem 1.1rem; border-radius:14px; font-weight:700; background:linear-gradient(180deg, #e6cf92, #c9a86a); color:#1a1200; box-shadow:0 8px 20px rgba(201,168,106,.35);}
+    .btn:hover{transform:translateY(-1px); box-shadow:0 12px 24px rgba(201,168,106,.45)}
+    .btn.ghost{background:transparent; color:var(--brand); border:1px solid rgba(201,168,106,.25)}
+
+    /* NAV */
+    header{position:sticky; top:0; z-index:50; border-bottom:1px solid rgba(255,255,255,.08);}
+    .nav{display:flex; align-items:center; justify-content:space-between; padding:.75rem 0}
+    .brand{display:flex; align-items:center; gap:.6rem; font-family:Cinzel,serif; letter-spacing:.5px}
+    .brand-badge{width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff6 0, #fff1 40%, transparent 60%), linear-gradient(135deg, var(--brand), var(--accent)); box-shadow:0 8px 20px rgba(155,108,255,.25)}
+    nav ul{display:flex; gap:1rem; padding:0; margin:0; list-style:none}
+    nav a{padding:.6rem .8rem; border-radius:10px; color:var(--muted)}
+    nav a:hover{background:rgba(255,255,255,.06); color:var(--ink)}
+    .nav-cta{display:flex; gap:.6rem; align-items:center}
+    .mobile-toggle{display:none}
+
+    /* HERO */
+    .hero{position:relative; padding:4.5rem 0 3rem}
+    .hero-grid{display:grid; grid-template-columns: 1.2fr .8fr; gap:2rem; align-items:center}
+    h1{font-family:Cinzel,serif; font-size:clamp(2rem, 4.2vw, 3.5rem); line-height:1.1; margin:0 0 1rem}
+    .lead{font-size:1.05rem; color:var(--muted); margin:0 0 1.6rem}
+
+    .card-fan{position:relative; height:360px}
+    .fantasy-card{position:absolute; width:220px; aspect-ratio:5/7; border-radius:20px; background:linear-gradient(160deg, #182133, #0f1421); border:1px solid rgba(255,255,255,.12); box-shadow:var(--shadow); transform-origin: 70% 90%; overflow:hidden}
+    .fantasy-card::before{content:""; position:absolute; inset:0; background:radial-gradient(80% 60% at 50% 0%, rgba(255,255,255,.12), transparent 50%), linear-gradient(180deg, rgba(93,212,255,.15), rgba(155,108,255,.05)); mix-blend:screen}
+    .fantasy-card .frame{position:absolute; inset:10px; border-radius:14px; border:1px solid rgba(255,255,255,.12); padding:10px;}
+    .fantasy-card .art{height:55%; border-radius:12px;overflow:hidden; background:
+      radial-gradient(60% 60% at 30% 20%, rgba(93,212,255,.5), transparent 60%),
+      radial-gradient(70% 70% at 70% 70%, rgba(155,108,255,.45), transparent 60%),
+      linear-gradient(180deg, #162036, #0f1421); display:flex; place-items:center; font-weight:800; color:#111; text-shadow:0 2px 10px rgba(255,255,255,.45)}
+    .fantasy-card .art img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transition:transform .3s ease;
+    }
+    .fantasy-card:hover .art img {
+      transform:scale(1.05);
+    }
+    .fantasy-card .title{margin:.5rem 0 .25rem; font-weight:800; color:#fff}
+    .fantasy-card .text{font-size:.85rem; color:var(--muted)}
+
+    .c1{top:40px; left:10px; transform:rotate(-12deg)}
+    .c2{top:10px; left:130px; transform:rotate(4deg)}
+    .c3{top:65px; left:260px; transform:rotate(16deg)}
+
+    /* SECTION: Archetypes */
+    section{padding:2.5rem 0}
+    .section-head{display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.2rem}
+    .section-head h2{margin:0; font-family:Cinzel,serif; font-size:1.6rem}
+
+    .grid{display:grid; grid-template-columns:repeat(12, 1fr); gap:1rem}
+    .arche-card{grid-column:span 4; background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; position:relative}
+    .arche-card .banner{height:120px; background:linear-gradient(135deg, rgba(93,212,255,.35), rgba(155,108,255,.35));}
+    .arche-card .content{padding:1rem}
+    .arche-card h3{margin:.2rem 0 .4rem}
+    .tags{display:flex; flex-wrap:wrap; gap:.4rem}
+    .tag{font-size:.75rem; padding:.25rem .5rem; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:var(--muted)}
+    .arche-card:hover{transform:translateY(-2px)}
+
+    /* SECTION: Lore */
+    .lore{display:grid; grid-template-columns: .9fr 1.1fr; gap:1rem; align-items:stretch}
+    .lore .panel{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); padding:1.2rem}
+
+    /* Carousel */
+    .carousel{position:relative; overflow:hidden; border-radius:var(--radius); height:260px; border:1px solid rgba(255,255,255,.08)}
+    .slides{display:flex; width:300%; height:100%; transition:transform .5s ease}
+    .slide{flex:0 0 100%; display:grid; place-items:center; background:linear-gradient(120deg, rgba(93,212,255,.18), rgba(155,108,255,.12)); font-weight:700}
+    .dots{display:flex; gap:.4rem; position:absolute; inset:auto 0 10px; justify-content:center}
+    .dot{width:8px; height:8px; border-radius:50%; background:#ffffff33}
+    .dot.active{background:#fff}
+
+    /* SECTION: Newsletter */
+    .cta{display:grid; place-items:center; text-align:center; gap:.6rem; padding:2rem; background:linear-gradient(180deg, rgba(14,18,28,.95), rgba(14,18,28,.9)); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius)}
+    .input{display:flex; gap:.6rem; width:min(560px, 100%)}
+    .input input{flex:1; padding:.9rem 1rem; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0d1220; color:var(--ink)}
+
+    footer{padding:2rem 0 3rem; border-top:1px solid rgba(255,255,255,.08); color:var(--muted)}
+
+    /* RESPONSIVE */
+    @media (max-width: 960px){
+      .hero-grid{grid-template-columns: 1fr}
+      .card-fan{height:300px}
+      .arche-card{grid-column:span 6}
+      .lore{grid-template-columns: 1fr}
+    }
+    @media (max-width: 640px){
+      nav ul{display:none}
+      .mobile-toggle{display:inline-flex}
+      .arche-card{grid-column:span 12}
+      .btn{padding:.8rem 1rem}
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== NAVBAR ===== -->
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#">
+        <span class="brand-badge" aria-hidden="true"></span>
+        <span>Arcana Forge</span>
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#archetypes">Deck Archetypes</a></li>
+          <li><a href="#lore">Lore</a></li>
+          <li><a href="#news">News</a></li>
+          <li><a href="#community">Community</a></li>
+        </ul>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn ghost" href="#news">What’s New</a>
+        <a class="btn" href="marketplace.html">Go to Marketplace</a>
+        <button class="mobile-toggle btn ghost" aria-label="Toggle menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="pill">Welcome • Patch v1.12</span>
+        <h1>Build legendary <span style="color:var(--brand)">decks</span>, explore rich <span style="color:var(--brand-2)">lore</span>, and master the <span style="color:var(--accent)">meta</span>.</h1>
+        <p class="lead">This is the home of our fantasy card game. Browse archetypes, read stories from the world, and catch up on updates. When you’re ready to trade or buy, hop to the Marketplace.</p>
+        <div style="display:flex; gap:.6rem; flex-wrap:wrap">
+          <a class="btn" href="#archetypes">Explore Archetypes</a>
+          <a class="btn ghost" href="#builder">Open Deck Builder</a>
+        </div>
+      </div>
+      <div class="card-fan" aria-hidden="true">
+        <!-- Stylized sample cards (pure CSS) -->
+        <article class="fantasy-card c1">
+          <div class="frame">
+            <div class="art"><img id="art1" alt="Card art 1"></div>
+            <div class="title" id="title1"></div>
+
+          </div>
+        </article>
+        <article class="fantasy-card c2">
+          <div class="frame">
+            <div class="art"><img id="art2" alt="Card art 2"></div>
+            <div class="title" id="title2"></div>
+
+          </div>
+        </article>
+        <article class="fantasy-card c3">
+          <div class="frame">
+            <div class="art"><img id="art3" alt="Card art 3"></div>
+            <div class="title" id="title3"></div>
+
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ARCHETYPES ===== -->
+  <section id="archetypes">
+    <div class="container">
+      <div class="section-head">
+        <h2>Popular Deck Archetypes</h2>
+        <a class="pill" href="#">View tier list →</a>
+      </div>
+      <div class="grid">
+        <!-- Control Mage -->
+        <article class="arche-card" tabindex="0" aria-labelledby="a1">
+          <div class="banner" role="img" aria-label="Arcane swirls and runes"></div>
+          <div class="content">
+            <h3 id="a1">Control Mage</h3>
+            <p class="muted">Slow the game, answer threats, and win with inevitability.</p>
+            <div class="tags">
+              <span class="tag">Spells</span>
+              <span class="tag">Card Draw</span>
+              <span class="tag">Board Clears</span>
+            </div>
+          </div>
+        </article>
+        <!-- Beastmaster Hunter -->
+        <article class="arche-card" tabindex="0" aria-labelledby="a2">
+          <div class="banner" role="img" aria-label="Wilderness and fangs"></div>
+          <div class="content">
+            <h3 id="a2">Beastmaster Hunter</h3>
+            <p class="muted">Swarm with beasts, buff your pack, strike for lethal.</p>
+            <div class="tags">
+              <span class="tag">Tokens</span>
+              <span class="tag">Synergy</span>
+              <span class="tag">Rush</span>
+            </div>
+          </div>
+        </article>
+        <!-- Undying Necro -->
+        <article class="arche-card" tabindex="0" aria-labelledby="a3">
+          <div class="banner" role="img" aria-label="Skulls and green necrotic glow"></div>
+          <div class="content">
+            <h3 id="a3">Undying Necromancer</h3>
+            <p class="muted">Graveyard recursion with value engines and life drain.</p>
+            <div class="tags">
+              <span class="tag">Reanimate</span>
+              <span class="tag">Lifesteal</span>
+              <span class="tag">Tempo</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LORE & NEWS ===== -->
+  <section id="lore">
+    <div class="container lore">
+      <div class="panel">
+        <div class="section-head">
+          <h2>Lore Spotlight</h2>
+          <span class="pill">Weekly Chronicle</span>
+        </div>
+        <p>From the floating spires of Aetheria to the cursed Catacombs of Vhal, every card tells a story. Dive into character backstories, world events, and hidden easter eggs scattered across the set.</p>
+        <div class="carousel" aria-roledescription="carousel" aria-label="Artwork carousel">
+          <div class="slides" id="slides">
+            <div class="slide">Sky Citadel — Chapter I</div>
+            <div class="slide">The Warden’s Pact</div>
+            <div class="slide">Fire & Frost — Rivals</div>
+          </div>
+          <div class="dots" role="tablist">
+            <button class="dot" data-slide="0" aria-label="Slide 1" aria-controls="slides"></button>
+            <button class="dot" data-slide="1" aria-label="Slide 2" aria-controls="slides"></button>
+            <button class="dot" data-slide="2" aria-label="Slide 3" aria-controls="slides"></button>
+          </div>
+        </div>
+      </div>
+      <div class="panel" id="news">
+        <div class="section-head">
+          <h2>News & Updates</h2>
+          <a class="pill" href="#">Patch notes →</a>
+        </div>
+        <ul>
+          <li><strong>Balance Patch v1.12:</strong> Minor nerfs to Frost Warden; Beastmaster companions now cost (2) instead of (3).</li>
+          <li><strong>Dev Diary:</strong> Behind the scenes of the new elemental card frames.</li>
+          <li><strong>Community Event:</strong> Deck-building jam this Saturday at 18:00.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COMMUNITY / BUILDER ===== -->
+  <section id="community">
+    <div class="container">
+      <div class="cta">
+        <h2 style="font-family:Cinzel,serif; margin:.2rem 0">Join the Community</h2>
+        <p class="muted" style="margin:0 0 .6rem">Share lists, ask for feedback, and theorycraft next season’s meta.</p>
+        <div style="display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center">
+          <a class="btn" href="#builder" aria-describedby="builder-help">Open Deck Builder</a>
+          <a class="btn ghost" href="marketplace.html">Go to Marketplace</a>
+        </div>
+        <small id="builder-help" class="muted">The Deck Builder is a sandbox for prototyping; trading happens in the Marketplace.</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== NEWSLETTER ===== -->
+  <section>
+    <div class="container">
+      <div class="cta">
+        <h3 style="margin:.2rem 0">Get patch notes & meta snapshots</h3>
+        <div class="input">
+          <input aria-label="Email address" placeholder="you@realm.com" />
+          <button class="btn" id="subscribe">Subscribe</button>
+        </div>
+        <small class="muted" id="sub-msg" role="status" aria-live="polite"></small>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="container" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem">
+      <div>
+        <div class="brand" style="margin-bottom:.5rem">
+          <span class="brand-badge" aria-hidden="true"></span>
+          <span>Arcana Forge</span>
+        </div>
+        <p>Home of decks, lore and events. © <span id="year"></span> Arcana Forge. All rights reserved.</p>
+      </div>
+      <nav aria-label="Footer" style="justify-self:end">
+        <ul style="display:flex; gap:1rem; list-style:none; margin:0; padding:0">
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav (very light)
+    const toggle = document.querySelector('.mobile-toggle');
+    const navList = document.querySelector('nav ul');
+    toggle?.addEventListener('click', ()=>{
+      const visible = navList.style.display === 'flex';
+      navList.style.display = visible ? 'none' : 'flex';
+      navList.style.flexDirection = 'column';
+      navList.style.gap = '0';
+    });
+
+    // Simple carousel logic
+    const slides = document.getElementById('slides');
+    const dots = Array.from(document.querySelectorAll('.dot'));
+    let i = 0;
+    function go(n){
+      i = (n + dots.length) % dots.length;
+      slides.style.transform = `translateX(-${i*100}%)`;
+      dots.forEach((d,idx)=>d.classList.toggle('active', idx===i));
+    }
+    dots.forEach((d)=>d.addEventListener('click', (e)=>go(parseInt(e.target.dataset.slide,10))));
+    go(0);
+    setInterval(()=>go(i+1), 4500);
+
+    // Newsletter toast
+    const subBtn = document.getElementById('subscribe');
+    const subMsg = document.getElementById('sub-msg');
+    subBtn?.addEventListener('click', ()=>{
+      subMsg.textContent = 'Thanks! You\'re on the list.';
+    });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+    // === Rotating hero art from a manifest (assets/cards.json) ===
+
+
+    function fileNameToTitle(pathOrName) {
+    // Accept either a full path or just the filename
+    const rawName = decodeURIComponent(
+      pathOrName.split('/').pop().replace(/\.[^.]+$/, '')
+    );
+    const cleaned = rawName.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    return cleaned.replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+    }
+
+    async function setupRotatingArt() {
+      const imgs = [
+        document.getElementById('art1'),
+        document.getElementById('art2'),
+        document.getElementById('art3')
+      ].filter(Boolean);
+
+      const titles = [
+        document.getElementById('title1'),
+        document.getElementById('title2'),
+        document.getElementById('title3')
+      ].filter(Boolean);
+
+      if (!imgs.length) return;
+
+      try {
+        const res = await fetch('assets/cards.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const names = await res.json();   // e.g. ["A day in the desert.png", "Alpha Wolf.png", ...]
+
+        // Build URLs that safely handle spaces and special chars
+        const artList = names.map(n => `assets/cards/${encodeURIComponent(n)}`);
+
+        // Preload
+        artList.forEach(src => { const im = new Image(); im.src = src; });
+
+        let tick = Math.floor(Math.random() * artList.length);
+
+        function render() {
+          imgs.forEach((img, idx) => {
+            const index = (tick + idx * 5) % artList.length;
+            const src = artList[index];
+            // Set image
+            img.src = src;
+            img.alt = fileNameToTitle(names[index]); // use original name for alt/title
+
+            // Set matching title if the element exists
+            if (titles[idx]) titles[idx].textContent = fileNameToTitle(names[index]);
+          });
+        }
+
+        render();
+        setInterval(() => {
+          tick = (tick + 1) % artList.length;
+          render();
+        }, 5000);
+      } catch (err) {
+        console.error('Failed to load cards.json:', err);
+      }
+    }
+
+    setupRotatingArt();
+  </script>
+</body>
+</html>

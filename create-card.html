@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create Card — Arcana Forge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600..900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b0e14;--ink:#e8ecf3;--muted:#a6b0c3;--brand:#c9a86a;--card:#0f1421;--radius:18px}
+    *{box-sizing:border-box} body{margin:0;color:var(--ink);font-family:Inter,system-ui;background:radial-gradient(1200px 600px at 80% -10%, rgba(93,212,255,.15), transparent 60%),radial-gradient(900px 500px at 10% -15%, rgba(155,108,255,.15), transparent 60%),var(--bg)}
+    .container{width:min(900px,92%);margin-inline:auto}
+    header{position:sticky;top:0;border-bottom:1px solid rgba(255,255,255,.08)} .nav{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0}
+    .brand{display:flex;gap:.6rem;align-items:center;font-family:Cinzel,serif}
+    .brand-badge{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#c9a86a,#9b6cff)}
+    .panel{background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:1.2rem;margin:1.2rem 0}
+    label{display:block;margin:.6rem 0 .2rem;color:var(--muted)}
+    input, textarea{width:100%;padding:.9rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0d1220;color:var(--ink)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .btn{display:inline-flex;align-items:center;gap:.55rem;padding:.85rem 1.1rem;border-radius:14px;font-weight:700;background:linear-gradient(180deg,#e6cf92,#c9a86a);color:#1a1200}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="index.html"><span class="brand-badge"></span><span>Arcana Forge</span></a>
+      <div><a class="btn" href="marketplace.html">Back to Marketplace</a></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 style="font-family:Cinzel,serif">Create Card</h1>
+    <form id="form" class="panel">
+      <div class="grid">
+        <div>
+          <label>Name</label>
+          <input name="name" required />
+        </div>
+        <div>
+          <label>Card Type</label>
+          <input name="card_type" required />
+        </div>
+        <div>
+          <label>Cost (mana)</label>
+          <input name="cost" type="number" min="0" required />
+        </div>
+        <div>
+          <label>Attack</label>
+          <input name="attack" type="number" min="0" required />
+        </div>
+        <div>
+          <label>Health</label>
+          <input name="health" type="number" min="0" required />
+        </div>
+        <div>
+          <label>Tribe</label>
+          <input name="tribe" required />
+        </div>
+      </div>
+      <label>Text (description)</label>
+      <textarea name="text" rows="4" required></textarea>
+
+      <p class="muted">Image is inferred from <code>assets/cards/&lt;Name&gt;.png</code>. Make sure a PNG with the exact card name exists there.</p>
+
+      <div style="margin-top:1rem;display:flex;gap:.6rem">
+        <button class="btn" type="submit">Create the final card</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const API = 'http://localhost:5010';
+    const form = document.getElementById('form');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.cost    = parseInt(data.cost);
+      data.attack  = parseInt(data.attack);
+      data.health  = parseInt(data.health);
+
+      const res = await fetch(`${API}/api/cards`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      if(res.ok){
+        const created = await res.json();
+        alert('Card created!');
+        window.location.href = `card.html?id=${created.id}`;
+      } else {
+        const t = await res.text();
+        alert('Failed: ' + t);
+      }
+    });
+  </script>
+</body>
+</html>
